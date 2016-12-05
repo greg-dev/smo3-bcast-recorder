@@ -30,7 +30,7 @@ Promise.try(function() {
 }).then(function(response) {
     // find broadcast ticket
     const html = response.body.toString();
-    const ticket = html.match(new RegExp(/addFlashVar\('file', '(.*)'\)/));
+    const ticket = html.match(new RegExp(/&amp;file=(.*)&amp;/));
     if(ticket && "string" === typeof ticket[1]) {
         return ticket[1];
     } else {
