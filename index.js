@@ -4,8 +4,9 @@ const Promise = require("bluebird");
 const bhttp = require("bhttp");
 const moment = require("moment");
 const colors = require("colors");
+const crypto = require("crypto");
 
-const [action, bcast] = process.argv.slice(2);
+const [action, bcast, pass] = process.argv.slice(2);
 if("undefined" === typeof action || "undefined" === typeof bcast) {
     logError("Missing required params.");
     return;
@@ -50,17 +51,28 @@ Promise.try(function() {
         ticket,
         sid: "0".repeat(32)
     };
+    if(pass) {
+        data.pass = crypto.createHash("md5").update(pass).digest('hex');
+    }
     log(url);
     return bhttp.post(url, data);
 }).then(function(response) {
     const html = response.body.toString();
+    let json;
     try {
-        const json = JSON.parse(html);
+        json = JSON.parse(html);
         logSuccess(json);
-        return json;
     } catch(error) {
         logError("JSON parse error");
     }
+    if(json._pass_protected) {
+        if(pass) {
+            throw new Error("Wrong password");
+        } else {
+            throw new Error("Password protected");
+        }
+    }
+    return json;
 }).catch(function(error) {
     logError(error.toString().split("Error: ").pop());
 });
