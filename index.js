@@ -61,7 +61,6 @@ Promise.try(function() {
     let json;
     try {
         json = JSON.parse(html);
-        logSuccess(json);
     } catch(error) {
         logError("JSON parse error");
     }
@@ -72,6 +71,20 @@ Promise.try(function() {
             throw new Error("Password protected");
         }
     }
+    delete json._pass_protected;
+    delete json._vidURL;
+    delete json._chatURL;
+    delete json._chat_server;
+    delete json.begun_url_1;
+    delete json.begun_url_2;
+    delete json.begun_url_3;
+    delete json.begun_url_4;
+    delete json.video_id;
+    delete json.author_id;
+    delete json.fakestatus;
+    delete json.remote_ip;
+    delete json.save_error;
+    logSuccess(json);
     return json;
 }).catch(function(error) {
     logError(error.toString().split("Error: ").pop());
