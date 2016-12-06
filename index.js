@@ -136,6 +136,11 @@ function capture(json) {
             throw error;
         });
 
+        captureProcess.on('close', function(code) {
+            log("Disconnected");
+            capture(json);
+        });
+
         log("Start recording " + colors.green(json.login));
     }).catch(function(error) {
         logError(error.toString());
