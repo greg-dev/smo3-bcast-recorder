@@ -5,6 +5,9 @@ const bhttp = require("bhttp");
 const moment = require("moment");
 const colors = require("colors");
 const crypto = require("crypto");
+const childProcess = require('child_process');
+
+const captureDirectory = 'captures/';
 
 const [action, bcast, pass] = process.argv.slice(2);
 if("undefined" === typeof action || "undefined" === typeof bcast) {
@@ -86,9 +89,58 @@ Promise.try(function() {
     delete json.save_error;
     logSuccess(json);
     return json;
+}).then(function(json) {
+    capture(json);
 }).catch(function(error) {
     logError(error.toString().split("Error: ").pop());
 });
+
+function capture(json) {
+    const fileName = [
+        json._streamName.split("_").slice(0,2).join("_"),
+        moment().format("YYYYMMDDHHmmss"),
+        json.login
+    ].join("_") + ".flv";
+
+    return Promise.try(function() {
+        const spawnArgs = [
+            "-v",
+            "-m", 3600,
+            "-r", json._server + "/" + json._streamName,
+            "-a", "broadcast/" + json._streamName,
+            "-f", "WIN 12,0,0,77",
+            "-W", "fws.yalp_tsacdaorb/moc.irtoms.scip//:ptth".split("").reverse().join(""),
+            "-C", "S:00000000000000000000000000000000",
+            "-y", json._streamName,
+            "-o", captureDirectory + fileName
+        ];
+
+        const captureProcess = childProcess.spawn('rtmpdump', spawnArgs);
+
+        captureProcess.stderr.on('data', function(data) {
+            let txt = data.toString().trim();
+            const omitedMessages = [
+                "RTMPDump v",
+                "INFO: Metadata"
+            ];
+            for(const begin of omitedMessages) {
+                if(txt.indexOf(begin) === 0) return;
+            }
+            if("INFO: Connected..." === txt) {
+                txt = "Connected";
+            }
+            log(txt);
+        });
+
+        captureProcess.on('error', function(error) {
+            throw error;
+        });
+
+        log("Start recording " + colors.green(json.login));
+    }).catch(function(error) {
+        logError(error.toString());
+    });
+}
 
 function currentDateTime() {
     return moment().format("YYYY-MM-DD HH:mm:ss");
