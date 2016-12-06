@@ -39,6 +39,8 @@ Promise.try(function() {
     } else {
         if(-1 < html.indexOf("Трансляция не найдена")) {
             throw new Error("Broadcast not found");
+        } else if(-1 < html.indexOf("Трансляция не одобрена модератором")) {
+            throw new Error("Broadcast banned");
         } else if(-1 < html.indexOf("Страница не найдена")) {
             throw new Error("Page not found");
         } else if(-1 < html.indexOf("Юзер не найден")) {
