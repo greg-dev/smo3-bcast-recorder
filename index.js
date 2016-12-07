@@ -5,9 +5,11 @@ const bhttp = require("bhttp");
 const moment = require("moment");
 const colors = require("colors");
 const crypto = require("crypto");
-const childProcess = require('child_process');
+const childProcess = require("child_process");
+const jsonfile = Promise.promisifyAll(require("jsonfile"));
 
-const captureDirectory = 'captures/';
+const captureDirectory = "captures/";
+const broadcastsDirectory = "broadcasts/";
 
 const [action, bcast, pass] = process.argv.slice(2);
 if("undefined" === typeof action || "undefined" === typeof bcast) {
@@ -90,12 +92,19 @@ Promise.try(function() {
     delete json.remote_ip;
     delete json.save_error;
     logSuccess(json);
+    storeBroadcastData(json);
     return json;
 }).then(function(json) {
     capture(json);
 }).catch(function(error) {
     logError(error.toString().split("Error: ").pop());
 });
+
+function storeBroadcastData(json) {
+    const bid = json._streamName.split("_")[1];
+    const path = broadcastsDirectory + parseInt(bid) + ".json";
+    return jsonfile.writeFile(path, json);
+}
 
 function capture(json) {
     const fileName = [

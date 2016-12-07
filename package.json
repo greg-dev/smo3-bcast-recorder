@@ -1,16 +1,16 @@
 {
   "name": "smo3-bcast-recorder",
-  "version": "0.4.1",
+  "version": "0.5.1",
   "description": "",
   "main": "index.js",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "",
   "license": "WTFPL",
   "dependencies": {
     "bhttp": "^1.2.4",
     "bluebird": "^3.4.6",
     "colors": "^1.1.2",
+    "jsonfile": "^2.4.0",
     "moment": "^2.17.1"
   },
   "eslintConfig": {
