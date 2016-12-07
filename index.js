@@ -19,6 +19,13 @@ if("undefined" === typeof action || "undefined" === typeof bcast) {
 
 const BASE_URL = "/moc.irtoms//:ptth".split("").reverse().join("");
 
+process.on("SIGINT", function () {
+    if("undefined" !== typeof capture.process) {
+        capture.process.kill("SIGKILL");
+    }
+    process.exit(0);
+});
+
 Promise.try(function() {
     // get proper page with brodcast tickets
     if(bcast === bcast.replace(/\D/g,"")){
@@ -127,10 +134,12 @@ function capture(json) {
         ];
 
         const captureProcess = childProcess.spawn('rtmpdump', spawnArgs);
+        capture.process = captureProcess;
 
         captureProcess.stderr.on('data', function(data) {
             let txt = data.toString().trim();
             const omitedMessages = [
+                "Caught signal: 2",
                 "RTMPDump v",
                 "INFO: Metadata"
             ];
