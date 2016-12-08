@@ -7,6 +7,7 @@ const colors = require("colors");
 const crypto = require("crypto");
 const childProcess = require("child_process");
 const jsonfile = Promise.promisifyAll(require("jsonfile"));
+const fs = require("fs");
 
 const captureDirectory = "captures/";
 const broadcastsDirectory = "broadcasts/";
@@ -22,6 +23,11 @@ const BASE_URL = "/moc.irtoms//:ptth".split("").reverse().join("");
 process.on("SIGINT", function () {
     if("undefined" !== typeof capture.process) {
         capture.process.kill("SIGKILL");
+
+        const path = captureDirectory + capture.process.fileName;
+        if (!fs.statSync(path).size) {
+            fs.unlink(path);
+        }
     }
     process.exit(0);
 });
@@ -135,6 +141,7 @@ function capture(json) {
 
         const captureProcess = childProcess.spawn('rtmpdump', spawnArgs);
         capture.process = captureProcess;
+        capture.process.fileName = fileName;
 
         captureProcess.stderr.on('data', function(data) {
             let txt = data.toString().trim();
