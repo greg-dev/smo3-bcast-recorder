@@ -104,6 +104,10 @@ Promise.try(function() {
     delete json.fakestatus;
     delete json.remote_ip;
     delete json.save_error;
+    delete json.rubric_broadcastlink;
+    if(!!json._imgURL && "//pics." === json._imgURL.substr(0,7)) {
+        delete json._imgURL;
+    }
     logSuccess(json);
     storeBroadcastData(json);
     return json;
