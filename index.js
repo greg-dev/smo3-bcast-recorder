@@ -13,15 +13,21 @@ const captureDirectory = "captures/";
 const broadcastsDirectory = "broadcasts/";
 
 const [action, bcast, pass] = process.argv.slice(2);
-if("undefined" === typeof action || "undefined" === typeof bcast) {
+if(undefined === action || undefined === bcast) {
     logError("Missing required params.");
     return;
 }
 
-const BASE_URL = "/moc.irtoms//:ptth".split("").reverse().join("");
+if(!String.prototype.hasOwnProperty("reverse")) {
+    String.prototype.reverse = function() {
+        return this.split("").reverse().join("");
+    };
+}
+
+const BASE_URL = "/moc.irtoms//:ptth".reverse();
 
 process.on("SIGINT", function () {
-    if("undefined" !== typeof capture.process) {
+    if(undefined !== capture.process) {
         capture.process.kill("SIGKILL");
 
         const path = captureDirectory + capture.process.fileName;
@@ -37,12 +43,10 @@ Promise.try(function() {
     if(bcast === bcast.replace(/\D/g,"")){
         // use broadcast id
         const url = BASE_URL + "broadcast/view?id=" + bcast;
-        log(url);
         return bhttp.get(url);
     } else {
         // use broadcaster login
         const url = BASE_URL + "live/" + bcast + "/";
-        log(url);
         return bhttp.get(url);
     }
 }).then(function(response) {
@@ -74,7 +78,6 @@ Promise.try(function() {
     if(pass) {
         data.pass = crypto.createHash("md5").update(pass).digest('hex');
     }
-    log(url);
     return bhttp.post(url, data);
 }).then(function(response) {
     const html = response.body.toString();
@@ -85,11 +88,7 @@ Promise.try(function() {
         logError("JSON parse error");
     }
     if(json._pass_protected) {
-        if(pass) {
-            throw new Error("Wrong password");
-        } else {
-            throw new Error("Password protected");
-        }
+        throw new Error(pass ? "Wrong password" : "Password protected");
     }
     delete json._pass_protected;
     delete json._vidURL;
@@ -137,7 +136,7 @@ function capture(json) {
             "-r", json._server + "/" + json._streamName,
             "-a", "broadcast/" + json._streamName,
             "-f", "WIN 12,0,0,77",
-            "-W", "fws.yalp_tsacdaorb/moc.irtoms.scip//:ptth".split("").reverse().join(""),
+            "-W", "fws.yalp_tsacdaorb/moc.irtoms.scip//:ptth".reverse(),
             "-C", "S:00000000000000000000000000000000",
             "-y", json._streamName,
             "-o", captureDirectory + fileName
