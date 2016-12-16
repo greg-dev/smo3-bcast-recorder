@@ -138,6 +138,13 @@ function capture(json) {
       if (omitedMessages.some(begin => !chunk.indexOf(begin))) {
         return;
       }
+      const errorMessages = [
+        'Failed to open file',
+      ];
+      if (errorMessages.some(begin => !chunk.indexOf(begin))) {
+        logError(chunk);
+        process.exit(1);
+      }
       if (chunk === 'INFO: Connected...') {
         chunk = 'Connected';
       }
