@@ -70,6 +70,23 @@ Promise.try(() => {
   if (json._pass_protected) {
     throw new Error(pass ? 'Wrong password' : 'Password protected');
   }
+  return json;
+})
+.then((json) => {
+  storeBroadcastData(json);
+  return json;
+})
+.then((json) => {
+  capture(json);
+})
+.catch((error) => {
+  logError(error.toString().split('Error: ').pop());
+});
+
+function removeKnownUnwantedData(orig) {
+  const json = Object.assign({}, orig);
+  delete json.current_time;
+  delete json.is_play;
   delete json._pass_protected;
   delete json._vidURL;
   delete json._chatURL;
@@ -87,21 +104,14 @@ Promise.try(() => {
   if (!!json._imgURL && json._imgURL.substr(0, 7) === '//pics.') {
     delete json._imgURL;
   }
-  logSuccess(json);
-  storeBroadcastData(json);
+  logSuccess(JSON.stringify(json));
   return json;
-})
-.then((json) => {
-  capture(json);
-})
-.catch((error) => {
-  logError(error.toString().split('Error: ').pop());
-});
+}
 
 function storeBroadcastData(json) {
   const bid = json._streamName.split('_')[1];
   const path = broadcastsDirectory + parseInt(bid, 10) + '.json';
-  return jsonfile.writeFile(path, json);
+  return jsonfile.writeFile(path, removeKnownUnwantedData(json));
 }
 
 function capture(json) {
