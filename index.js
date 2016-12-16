@@ -129,26 +129,30 @@ function capture(json) {
     capture.process.fileName = fileName;
 
     captureProcess.stderr.on('data', (data) => {
-      let chunk = data.toString().trim();
-      const omitedMessages = [
+      const chunk = data.toString().trim();
+      if (!isNaN(parseInt(chunk[0], 10))) { // download progress
+        log(chunk);
+      } else if (chunk === 'Connecting ...') {
+        log('Connecting...');
+      } else if (chunk === 'INFO: Connected...') {
+        log('Connected. Waiting for live stream...');
+      } else if (chunk === 'Starting Live Stream') {
+        log('Recording...');
+      } else if ([ // unimportant info
         'Caught signal: 2',
         'RTMPDump v',
         'INFO: Metadata',
-      ];
-      if (omitedMessages.some(begin => !chunk.indexOf(begin))) {
-        return;
-      }
-      const errorMessages = [
+      ].some(begin => !chunk.indexOf(begin))) {
+        // do nothing
+      } else if ([ // fatal error
         'Failed to open file',
-      ];
-      if (errorMessages.some(begin => !chunk.indexOf(begin))) {
+      ].some(begin => !chunk.indexOf(begin))) {
         logError(chunk);
         process.exit(1);
+      } else { // unexpected output
+        log(chunk, 'orange');
+        process.exit(0);
       }
-      if (chunk === 'INFO: Connected...') {
-        chunk = 'Connected';
-      }
-      log(chunk);
     });
 
     captureProcess.on('error', (error) => {
@@ -159,8 +163,6 @@ function capture(json) {
       log('Disconnected');
       capture(json);
     });
-
-    log('Start recording ' + colors.green(json.login));
   }).catch((error) => {
     logError(error.toString());
   });
