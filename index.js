@@ -65,7 +65,7 @@ Promise.try(() => {
   try {
     json = JSON.parse(html);
   } catch (error) {
-    logError('JSON parse error');
+    throw new Error('JSON parse error');
   }
   if (json._pass_protected) {
     throw new Error(pass ? 'Wrong password' : 'Password protected');
