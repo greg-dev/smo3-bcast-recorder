@@ -1,194 +1,184 @@
-"use strict";
+'use strict';
 
-const Promise = require("bluebird");
-const bhttp = require("bhttp");
-const moment = require("moment");
-const colors = require("colors");
-const crypto = require("crypto");
-const childProcess = require("child_process");
-const jsonfile = Promise.promisifyAll(require("jsonfile"));
-const fs = require("fs");
+/* eslint-disable no-console, no-use-before-define, prefer-template, no-underscore-dangle */
+const Promise = require('bluebird');
+const bhttp = require('bhttp');
+const moment = require('moment');
+const colors = require('colors');
+const crypto = require('crypto');
+const childProcess = require('child_process');
+const jsonfile = Promise.promisifyAll(require('jsonfile'));
+const fs = require('fs');
 
-const captureDirectory = "captures/";
-const broadcastsDirectory = "broadcasts/";
+const captureDirectory = 'captures/';
+const broadcastsDirectory = 'broadcasts/';
 
 const [action, bcast, pass] = process.argv.slice(2);
-if(undefined === action || undefined === bcast) {
-    logError("Missing required params.");
-    return;
+if (undefined === action || undefined === bcast) {
+  logError('Missing required params.');
+  process.exit(0);
 }
 
-if(!String.prototype.hasOwnProperty("reverse")) {
-    String.prototype.reverse = function() {
-        return this.split("").reverse().join("");
-    };
-}
+const BASE_URL = '/moc.irtoms//:ptth'.split('').reverse().join('');
 
-const BASE_URL = "/moc.irtoms//:ptth".reverse();
-
-process.on("SIGINT", function () {
-    if(undefined !== capture.process) {
-        capture.process.kill("SIGKILL");
-
-        const path = captureDirectory + capture.process.fileName;
-        if (!fs.statSync(path).size) {
-            fs.unlink(path);
-        }
-    }
-    process.exit(0);
-});
-
-Promise.try(function() {
-    // get proper page with brodcast tickets
-    if(bcast === bcast.replace(/\D/g,"")){
-        // use broadcast id
-        const url = BASE_URL + "broadcast/view?id=" + bcast;
-        return bhttp.get(url);
-    } else {
-        // use broadcaster login
-        const url = BASE_URL + "live/" + bcast + "/";
-        return bhttp.get(url);
-    }
-}).then(function(response) {
-    // find broadcast ticket
-    const html = response.body.toString();
-    const ticket = html.match(new RegExp(/&amp;file=(.*)&amp;/));
-    if(ticket && "string" === typeof ticket[1]) {
-        return ticket[1];
-    } else {
-        if(-1 < html.indexOf("Трансляция не найдена")) {
-            throw new Error("Broadcast not found");
-        } else if(-1 < html.indexOf("Трансляция не одобрена модератором")) {
-            throw new Error("Broadcast banned");
-        } else if(-1 < html.indexOf("Страница не найдена")) {
-            throw new Error("Page not found");
-        } else if(-1 < html.indexOf("Юзер не найден")) {
-            throw new Error("User not found");
-        } else {
-            throw new Error("Ticket unavailable");
-        }
-    }
-}).then(function(ticket) {
-    // get broadcast data
-    const url = BASE_URL + "broadcast/view/url/?xt=" + ticket;
-    const data = {
-        ticket,
-        sid: "0".repeat(32)
-    };
-    if(pass) {
-        data.pass = crypto.createHash("md5").update(pass).digest('hex');
-    }
-    return bhttp.post(url, data);
-}).then(function(response) {
-    const html = response.body.toString();
-    let json;
-    try {
-        json = JSON.parse(html);
-    } catch(error) {
-        logError("JSON parse error");
-    }
-    if(json._pass_protected) {
-        throw new Error(pass ? "Wrong password" : "Password protected");
-    }
-    delete json._pass_protected;
-    delete json._vidURL;
-    delete json._chatURL;
-    delete json._chat_server;
-    delete json.begun_url_1;
-    delete json.begun_url_2;
-    delete json.begun_url_3;
-    delete json.begun_url_4;
-    delete json.video_id;
-    delete json.author_id;
-    delete json.fakestatus;
-    delete json.remote_ip;
-    delete json.save_error;
-    delete json.rubric_broadcastlink;
-    if(!!json._imgURL && "//pics." === json._imgURL.substr(0,7)) {
-        delete json._imgURL;
-    }
-    logSuccess(json);
-    storeBroadcastData(json);
-    return json;
-}).then(function(json) {
-    capture(json);
-}).catch(function(error) {
-    logError(error.toString().split("Error: ").pop());
+Promise.try(() => {
+  let url;
+  // get proper page with brodcast tickets
+  if (bcast === bcast.replace(/\D/g, '')) {
+    // use broadcast id
+    url = BASE_URL + 'broadcast/view?id=' + bcast;
+  } else {
+    // use broadcaster login
+    url = BASE_URL + 'live/' + bcast + '/';
+  }
+  return bhttp.get(url);
+}).then((response) => {
+  // find broadcast ticket
+  const html = response.body.toString();
+  let ticket = html.match(new RegExp(/&amp;file=(.*)&amp;/));
+  if (ticket && typeof ticket[1] === 'string') {
+    ticket = ticket[1];
+  } else if (html.indexOf('Трансляция не найдена') > -1) {
+    throw new Error('Broadcast not found');
+  } else if (html.indexOf('Трансляция не одобрена модератором') > -1) {
+    throw new Error('Broadcast banned');
+  } else if (html.indexOf('Страница не найдена') > -1) {
+    throw new Error('Page not found');
+  } else if (html.indexOf('Юзер не найден') > -1) {
+    throw new Error('User not found');
+  } else {
+    throw new Error('Ticket unavailable');
+  }
+  return ticket;
+}).then((ticket) => {
+  // get json with broadcast data
+  const url = BASE_URL + 'broadcast/view/url/?xt=' + ticket;
+  const sid = '0'.repeat(32);
+  const data = { ticket, sid };
+  if (pass) {
+    data.pass = crypto.createHash('md5').update(pass).digest('hex');
+  }
+  return bhttp.post(url, data);
+}).then((response) => {
+  const html = response.body.toString();
+  let json;
+  try {
+    json = JSON.parse(html);
+  } catch (error) {
+    logError('JSON parse error');
+  }
+  if (json._pass_protected) {
+    throw new Error(pass ? 'Wrong password' : 'Password protected');
+  }
+  delete json._pass_protected;
+  delete json._vidURL;
+  delete json._chatURL;
+  delete json._chat_server;
+  delete json.begun_url_1;
+  delete json.begun_url_2;
+  delete json.begun_url_3;
+  delete json.begun_url_4;
+  delete json.video_id;
+  delete json.author_id;
+  delete json.fakestatus;
+  delete json.remote_ip;
+  delete json.save_error;
+  delete json.rubric_broadcastlink;
+  if (!!json._imgURL && json._imgURL.substr(0, 7) === '//pics.') {
+    delete json._imgURL;
+  }
+  logSuccess(json);
+  storeBroadcastData(json);
+  return json;
+})
+.then((json) => {
+  capture(json);
+})
+.catch((error) => {
+  logError(error.toString().split('Error: ').pop());
 });
 
 function storeBroadcastData(json) {
-    const bid = json._streamName.split("_")[1];
-    const path = broadcastsDirectory + parseInt(bid) + ".json";
-    return jsonfile.writeFile(path, json);
+  const bid = json._streamName.split('_')[1];
+  const path = broadcastsDirectory + parseInt(bid, 10) + '.json';
+  return jsonfile.writeFile(path, json);
 }
 
 function capture(json) {
-    const fileName = [
-        json._streamName.split("_").slice(0,2).join("_"),
-        moment().format("YYYYMMDDHHmmss"),
-        json.login
-    ].join("_") + ".flv";
+  const fileName = [
+    json._streamName.split('_').slice(0, 2).join('_'),
+    moment().format('YYYYMMDDHHmmss'),
+    json.login,
+  ].join('_') + '.flv';
 
-    return Promise.try(function() {
-        const spawnArgs = [
-            "-v",
-            "-m", 3600,
-            "-r", json._server + "/" + json._streamName,
-            "-a", "broadcast/" + json._streamName,
-            "-f", "WIN 12,0,0,77",
-            "-W", "fws.yalp_tsacdaorb/moc.irtoms.scip//:ptth".reverse(),
-            "-C", "S:00000000000000000000000000000000",
-            "-y", json._streamName,
-            "-o", captureDirectory + fileName
-        ];
+  return Promise.try(() => {
+    const spawnArgs = [
+      '-v',
+      '-m', 3600,
+      '-r', json._server + '/' + json._streamName,
+      '-a', 'broadcast/' + json._streamName,
+      '-f', 'WIN 12,0,0,77',
+      '-W', 'fws.yalp_tsacdaorb/moc.irtoms.scip//:ptth'.split('').reverse().join(''),
+      '-C', 'S:' + '0'.repeat(32),
+      '-y', json._streamName,
+      '-o', captureDirectory + fileName,
+    ];
 
-        const captureProcess = childProcess.spawn('rtmpdump', spawnArgs);
-        capture.process = captureProcess;
-        capture.process.fileName = fileName;
+    const captureProcess = childProcess.spawn('rtmpdump', spawnArgs);
+    capture.process = captureProcess;
+    capture.process.fileName = fileName;
 
-        captureProcess.stderr.on('data', function(data) {
-            let txt = data.toString().trim();
-            const omitedMessages = [
-                "Caught signal: 2",
-                "RTMPDump v",
-                "INFO: Metadata"
-            ];
-            for(const begin of omitedMessages) {
-                if(txt.indexOf(begin) === 0) return;
-            }
-            if("INFO: Connected..." === txt) {
-                txt = "Connected";
-            }
-            log(txt);
-        });
-
-        captureProcess.on('error', function(error) {
-            throw error;
-        });
-
-        captureProcess.on('close', function(code) {
-            log("Disconnected");
-            capture(json);
-        });
-
-        log("Start recording " + colors.green(json.login));
-    }).catch(function(error) {
-        logError(error.toString());
+    captureProcess.stderr.on('data', (data) => {
+      let chunk = data.toString().trim();
+      const omitedMessages = [
+        'Caught signal: 2',
+        'RTMPDump v',
+        'INFO: Metadata',
+      ];
+      if (omitedMessages.some(begin => !chunk.indexOf(begin))) {
+        return;
+      }
+      if (chunk === 'INFO: Connected...') {
+        chunk = 'Connected';
+      }
+      log(chunk);
     });
+
+    captureProcess.on('error', (error) => {
+      throw error;
+    });
+
+    captureProcess.on('close', () => {
+      log('Disconnected');
+      capture(json);
+    });
+
+    log('Start recording ' + colors.green(json.login));
+  }).catch((error) => {
+    logError(error.toString());
+  });
 }
 
-function currentDateTime() {
-    return moment().format("YYYY-MM-DD HH:mm:ss");
-}
+process.on('SIGINT', () => {
+  if (undefined !== capture.process) {
+    capture.process.kill('SIGKILL');
 
-function log(txt) {
-    console.log(colors.blue("["+currentDateTime()+"]"), txt);
-}
+    const path = captureDirectory + capture.process.fileName;
+    if (!fs.statSync(path).size) {
+      fs.unlink(path);
+    }
+  }
+  process.exit(0);
+});
 
+function log(txt, color) {
+  console.log(
+    colors.blue('[' + moment().format('YYYY-MM-DD HH:mm:ss') + ']'),
+    color ? colors[color](txt) : txt);
+}
 function logSuccess(txt) {
-    console.log(colors.green("["+currentDateTime()+"]"), txt);
+  log(txt, 'green');
 }
-
 function logError(txt) {
-    console.log(colors.blue("["+currentDateTime()+"]"), colors.red("[ERROR]"), txt);
+  log(txt, 'red');
 }
