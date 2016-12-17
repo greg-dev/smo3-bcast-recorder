@@ -19,14 +19,17 @@ if (undefined === action || undefined === bcast) {
   process.exit(0);
 }
 
-const BASE_URL = '/moc.irtoms//:ptth'.split('').reverse().join('');
+const BASE_URL = `http://sm${'o'}tri.com/`;
+const PICS_URL = BASE_URL.replace('//', '//pics.');
+const SWF_FILE = `broadcast${'_'}play.swf`;
+const BCAST_VW = `broadcast${'/'}view`;
 
 Promise.try(() => {
   let url;
   // get proper page with brodcast tickets
   if (bcast === bcast.replace(/\D/g, '')) {
     // use broadcast id
-    url = BASE_URL + 'broadcast/view?id=' + bcast;
+    url = BASE_URL + BCAST_VW + '?id=' + bcast;
   } else {
     // use broadcaster login
     url = BASE_URL + 'live/' + bcast + '/';
@@ -52,7 +55,7 @@ Promise.try(() => {
   return ticket;
 }).then((ticket) => {
   // get json with broadcast data
-  const url = BASE_URL + 'broadcast/view/url/?xt=' + ticket;
+  const url = BASE_URL + BCAST_VW + '/url/?xt=' + ticket;
   const sid = '0'.repeat(32);
   const data = { ticket, sid };
   if (pass) {
@@ -128,7 +131,7 @@ function capture(json) {
       '-r', json._server + '/' + json._streamName,
       '-a', 'broadcast/' + json._streamName,
       '-f', 'WIN 12,0,0,77',
-      '-W', 'fws.yalp_tsacdaorb/moc.irtoms.scip//:ptth'.split('').reverse().join(''),
+      '-W', PICS_URL + SWF_FILE,
       '-C', 'S:' + '0'.repeat(32),
       '-y', json._streamName,
       '-o', captureDirectory + fileName,
