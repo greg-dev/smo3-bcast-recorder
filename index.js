@@ -159,6 +159,7 @@ function capture(json) {
         // do nothing
       } else if ([ // minor error, but can block the capture process forever
         'ERROR: RTMP_ReadPacket, failed to read RTMP packet header',
+        'Caught signal: 13, cleaning up, just a second...',
       ].some(begin => !chunk.indexOf(begin))) {
         logError(chunk);
         // kill the current rtmpdump process, it will run a new one
