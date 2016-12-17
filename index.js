@@ -157,6 +157,12 @@ function capture(json) {
         'INFO: Metadata',
       ].some(begin => !chunk.indexOf(begin))) {
         // do nothing
+      } else if ([ // minor error, but can block the capture process forever
+        'ERROR: RTMP_ReadPacket, failed to read RTMP packet header',
+      ].some(begin => !chunk.indexOf(begin))) {
+        logError(chunk);
+        // kill the current rtmpdump process, it will run a new one
+        capture.process.kill('SIGKILL');
       } else if ([ // fatal error
         'Failed to open file',
       ].some(begin => !chunk.indexOf(begin))) {
