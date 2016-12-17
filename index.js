@@ -104,7 +104,7 @@ function removeKnownUnwantedData(orig) {
   if (!!json._imgURL && json._imgURL.substr(0, 7) === '//pics.') {
     delete json._imgURL;
   }
-  logSuccess(JSON.stringify(json));
+  log(colors.green(JSON.stringify(json)));
   return json;
 }
 
@@ -160,7 +160,7 @@ function capture(json) {
         logError(chunk);
         process.exit(1);
       } else { // unexpected output
-        log(chunk, 'orange');
+        log(colors.rainbow(chunk));
         process.exit(0);
       }
     });
@@ -190,14 +190,9 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-function log(txt, color) {
-  console.log(
-    colors.blue('[' + moment().format('YYYY-MM-DD HH:mm:ss') + ']'),
-    color ? colors[color](txt) : txt);
-}
-function logSuccess(txt) {
-  log(txt, 'green');
+function log(txt) {
+  console.log('[%s]'.blue, moment().format('YYYY-MM-DD HH:mm:ss'), txt);
 }
 function logError(txt) {
-  log(txt, 'red');
+  log(colors.red(txt));
 }
