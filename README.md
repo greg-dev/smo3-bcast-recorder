@@ -28,3 +28,4 @@ and broadcaster login or broadcast identifier as in the examples below:
 4. To access protected broadcasts in all above cases use the password as an optional parameter, for example:
  * run `node . get mashka4189 1234`
 
+>Note: Avoid running more than 75 capture processes at the same time or you will get your IP banned.
