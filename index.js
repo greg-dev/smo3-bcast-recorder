@@ -73,6 +73,9 @@ Promise.try(() => {
   if (json._pass_protected) {
     throw new Error(pass ? 'Wrong password' : 'Password protected');
   }
+  if (pass) {
+    json.pass = pass;
+  }
   return json;
 })
 .then((json) => {
