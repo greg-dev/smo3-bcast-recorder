@@ -17,6 +17,9 @@ const [action, bcast, pass] = process.argv.slice(2);
 if (undefined === action || undefined === bcast) {
   logError('Missing required params.');
   process.exit(0);
+} else if (!['record', 'store'].some(supported => action === supported)) {
+  logError('Unsupported command.');
+  process.exit(0);
 }
 
 const BASE_URL = `http://sm${'o'}tri.com/`;
@@ -79,11 +82,15 @@ Promise.try(() => {
   return json;
 })
 .then((json) => {
-  storeBroadcastData(json);
+  if (action === 'store' || action === 'record') {
+    storeBroadcastData(json);
+  }
   return json;
 })
 .then((json) => {
-  capture(json);
+  if (action === 'record') {
+    capture(json);
+  }
 })
 .catch((error) => {
   logError(error.toString().split('Error: ').pop());

@@ -26,6 +26,6 @@ and broadcaster login or broadcast identifier as in the examples below:
  * run `node . store mashka4189`
  * run `node . store 10438720`
 4. To access protected broadcasts in all above cases use the password as an optional parameter, for example:
- * run `node . get mashka4189 1234`
+ * run `node . record mashka4189 1234`
 
 >Note: Avoid running more than 75 capture processes at the same time or you will get your IP banned.
