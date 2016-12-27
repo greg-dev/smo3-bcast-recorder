@@ -128,6 +128,8 @@ function storeBroadcastData(json) {
 }
 
 function capture(json) {
+  capture.restartDelay = 0;
+
   const fileName = [
     json._streamName.split('_').slice(0, 2).join('_'),
     moment().format('YYYYMMDDHHmmss'),
@@ -172,7 +174,15 @@ function capture(json) {
         'Caught signal: 13, cleaning up, just a second...',
       ].some(begin => !chunk.indexOf(begin))) {
         logError(chunk);
-        // kill the current rtmpdump process, it will run a new one
+        // kill the current rtmpdump process and restart recording immediately
+        capture.restartDelay = 0;
+        capture.process.kill('SIGKILL');
+      } else if ([ // temporary problem that might need some time to resolve
+        'ERROR: Problem accessing the DNS',
+      ].some(begin => !chunk.indexOf(begin))) {
+        logError(chunk);
+        // kill the current rtmpdump process and restart recording with a delay
+        capture.restartDelay = 120000;
         capture.process.kill('SIGKILL');
       } else if ([ // fatal error
         'Failed to open file',
@@ -191,7 +201,9 @@ function capture(json) {
 
     captureProcess.on('close', () => {
       log('Disconnected');
-      capture(json);
+      setTimeout(() => {
+        capture(json);
+      }, capture.restartDelay);
     });
   }).catch((error) => {
     logError(error.toString());
