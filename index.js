@@ -96,7 +96,7 @@ Promise.try(() => {
   logError(error.toString().split('Error: ').pop());
 });
 
-function removeKnownUnwantedData(orig) {
+function cleanup(orig) {
   const json = Object.assign({}, orig);
   delete json.current_time;
   delete json.is_play;
@@ -124,7 +124,7 @@ function removeKnownUnwantedData(orig) {
 function storeBroadcastData(json) {
   const bid = json._streamName.split('_')[1];
   const path = broadcastsDirectory + parseInt(bid, 10) + '.json';
-  return jsonfile.writeFile(path, removeKnownUnwantedData(json));
+  return jsonfile.writeFile(path, cleanup(json));
 }
 
 function capture(json) {
