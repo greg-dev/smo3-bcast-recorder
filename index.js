@@ -166,7 +166,7 @@ function capture(json) {
       } else if ([ // unimportant info
         'Caught signal: 2',
         'RTMPDump v',
-        'INFO: Metadata',
+        'INFO:',
       ].some(begin => !chunk.indexOf(begin))) {
         // do nothing
       } else if ([ // minor error, but can block the capture process forever
