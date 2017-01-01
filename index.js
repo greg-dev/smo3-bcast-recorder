@@ -151,7 +151,6 @@ function capture(json) {
 
     const captureProcess = childProcess.spawn('rtmpdump', spawnArgs);
     capture.process = captureProcess;
-    capture.process.fileName = fileName;
 
     captureProcess.stderr.on('data', (data) => {
       const chunk = data.toString().trim();
@@ -176,14 +175,14 @@ function capture(json) {
         logError(chunk);
         // kill the current rtmpdump process and restart recording immediately
         capture.restartDelay = 0;
-        capture.process.kill('SIGKILL');
+        capture.process.murder();
       } else if ([ // temporary problem that might need some time to resolve
         'ERROR: Problem accessing the DNS',
       ].some(begin => !chunk.indexOf(begin))) {
         logError(chunk);
         // kill the current rtmpdump process and restart recording with a delay
         capture.restartDelay = 120000;
-        capture.process.kill('SIGKILL');
+        capture.process.murder();
       } else if ([ // fatal error
         'Failed to open file',
       ].some(begin => !chunk.indexOf(begin))) {
@@ -201,10 +200,19 @@ function capture(json) {
 
     captureProcess.on('close', () => {
       log('Disconnected');
+      captureProcess.murder();
       setTimeout(() => {
         capture(json);
       }, capture.restartDelay);
     });
+
+    captureProcess.murder = () => {
+      captureProcess.kill('SIGKILL');
+      const path = captureDirectory + fileName;
+      if (!fs.statSync(path).size) {
+        fs.unlink(path);
+      }
+    };
   }).catch((error) => {
     logError(error.toString());
   });
@@ -212,12 +220,7 @@ function capture(json) {
 
 process.on('SIGINT', () => {
   if (undefined !== capture.process) {
-    capture.process.kill('SIGKILL');
-
-    const path = captureDirectory + capture.process.fileName;
-    if (!fs.statSync(path).size) {
-      fs.unlink(path);
-    }
+    capture.process.murder();
   }
   process.exit(0);
 });
