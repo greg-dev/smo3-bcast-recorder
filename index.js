@@ -209,7 +209,7 @@ function capture(json) {
     captureProcess.murder = () => {
       captureProcess.kill('SIGKILL');
       const path = captureDirectory + fileName;
-      if (!fs.statSync(path).size) {
+      if (fs.existsSync(path) && !fs.statSync(path).size) {
         fs.unlink(path);
       }
     };
