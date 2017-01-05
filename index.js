@@ -177,6 +177,7 @@ function capture(json) {
         capture.restartDelay = 0;
         capture.process.murder();
       } else if ([ // temporary problem that might need some time to resolve
+        'ERROR: RTMP_Connect0, failed to connect socket.',
         'ERROR: Problem accessing the DNS',
       ].some(begin => !chunk.indexOf(begin))) {
         logError(chunk);
