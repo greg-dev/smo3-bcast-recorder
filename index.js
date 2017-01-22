@@ -187,6 +187,7 @@ function capture(json) {
         capture.process.murder();
       } else if ([ // fatal error
         'Failed to open file',
+        'ERROR: Download: Failed writing, exiting!',
       ].some(begin => !chunk.indexOf(begin))) {
         logError(chunk);
         process.exit(1);
