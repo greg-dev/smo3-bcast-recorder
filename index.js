@@ -168,6 +168,13 @@ function capture(json) {
         'INFO:',
       ].some(begin => !chunk.indexOf(begin))) {
         // do nothing
+      } else if ([ // no error, but restart needed
+        'Download complete',
+      ].some(begin => !chunk.indexOf(begin))) {
+        log(chunk);
+        // kill the current rtmpdump process and restart recording immediately
+        capture.restartDelay = 0;
+        capture.process.murder();
       } else if ([ // minor error, but can block the capture process forever
         'ERROR: RTMP_ReadPacket, failed to read RTMP packet header',
         'Caught signal: 13, cleaning up, just a second...',
