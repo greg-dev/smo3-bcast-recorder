@@ -155,6 +155,7 @@ function capture(json) {
     captureProcess.stderr.on('data', (data) => {
       const chunk = data.toString().trim();
       if (!isNaN(parseInt(chunk[0], 10))) { // download progress
+        clearConsole();
         log(chunk);
       } else if (chunk === 'Connecting ...') {
         log('Connecting...');
@@ -238,6 +239,17 @@ process.on('SIGINT', () => {
 function log(txt) {
   console.log('[%s]'.blue, moment().format('YYYY-MM-DD HH:mm:ss'), txt);
 }
+
 function logError(txt) {
   log(colors.red(txt));
+}
+
+function clearConsole() {
+  // The first code \u001B[2J instructs the terminal to clear itself,
+  // and the second one \u001B[0;0f forces the cursor back to position 0,0.
+  // Unicode 1B (the ESC character), followed by the two characters [ and J,
+  // an ANSI escape sequence common on many terminals.
+  // we could output the <ESC>c sequence using simple '\033c'
+  // but octal literals are not allowed in strict mode
+  console.log('\u001B[2J\u001B[0;0f');
 }
