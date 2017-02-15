@@ -10,6 +10,11 @@ const childProcess = require('child_process');
 const jsonfile = Promise.promisifyAll(require('jsonfile'));
 const fs = require('fs');
 
+const BASE_URL = `http://sm${'o'}tri.com/`;
+const PICS_URL = BASE_URL.replace('//', '//pics.');
+const SWF_FILE = `broadcast${'_'}play.swf`;
+const BCAST_VW = `broadcast${'/'}view`;
+
 const captureDirectory = 'captures/';
 const broadcastsDirectory = 'broadcasts/';
 
@@ -22,10 +27,23 @@ if (undefined === action || undefined === bcast) {
   process.exit(0);
 }
 
-const BASE_URL = `http://sm${'o'}tri.com/`;
-const PICS_URL = BASE_URL.replace('//', '//pics.');
-const SWF_FILE = `broadcast${'_'}play.swf`;
-const BCAST_VW = `broadcast${'/'}view`;
+// try to record using stored broadcast info
+if (action === 'record' && bcast.split('.').pop() === 'json') {
+  const path = broadcastsDirectory + bcast;
+  if (fs.existsSync(path)) {
+    let json = fs.readFileSync(path, 'utf-8').trim();
+    try {
+      json = JSON.parse(json);
+    } catch (error) {
+      logError('JSON parse error');
+      return;
+    }
+    capture(json);
+  } else {
+    logError('File not found');
+  }
+  return;
+}
 
 Promise.try(() => {
   let url;
