@@ -22,6 +22,8 @@ This tool lets you automatically record your favorite shows right from the termi
 and broadcaster login or broadcast identifier as in the examples below:
  * run `node . record mashka4189`
  * run `node . record 10438720`
+<br/><br/>you can add `.json` suffix to broadcast id to start recording using its data stored previously in a file:
+ * run `node . record 10438720.json`
 3. To store broadcast data without recording any video stream use the `store` command as below:
  * run `node . store mashka4189`
  * run `node . store 10438720`
