@@ -29,3 +29,7 @@ and broadcaster login or broadcast identifier as in the examples below:
  * run `node . record mashka4189 1234`
 
 >Note: Avoid running more than 75 capture processes at the same time or you will get your IP banned.
+
+>Note: The command below might be useful to find and kill unwanted capture processes:
+<br/>
+>`ps | grep 'rtmpdump' | cut -d ' ' -f 1,25`
