@@ -36,7 +36,7 @@ function check() {
     .pop() // get last message
     .substr(22); // chop off timestamp
 
-  if (out === 'Broadcast not found') {
+  if (['Broadcast not found', 'Ticket unavailable'].includes(out)) {
     log(`${check.bid} -`);
     return false;
   }
