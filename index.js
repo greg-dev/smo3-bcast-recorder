@@ -18,13 +18,48 @@ const BCAST_VW = `broadcast${'/'}view`;
 const captureDirectory = 'captures/';
 const broadcastsDirectory = 'broadcasts/';
 
-const [action, bcast, pass] = process.argv.slice(2);
+const [action, bcast, opt1] = process.argv.slice(2);
 if (undefined === action || undefined === bcast) {
   logError('Missing required params.');
   process.exit(0);
-} else if (!['record', 'store'].some(supported => action === supported)) {
+} else if (!['record', 'store', 'watch'].includes(action)) {
   logError('Unsupported command.');
   process.exit(0);
+}
+
+function check() {
+  let out = childProcess.spawnSync('node', ['.', 'store', check.bid]).output
+    .filter(chunk => !!chunk) // remove nulls
+    .map(chunk => chunk.toString().trim())
+    .filter(chunk => !!chunk) // remove empty lines
+    .pop() // get last message
+    .substr(22); // chop off timestamp
+
+  if (out === 'Broadcast not found') {
+    log(`${check.bid} -`);
+    return false;
+  }
+
+  try {
+    out = JSON.parse(out);
+    // bcast found, not protected
+    log(`${check.bid}
+    ${BASE_URL}broadcast/view?id=${out._streamName.split('_')[1]}
+    ${BASE_URL}user/${out.login}
+    ${out.gender} ${out.nick} ${out.rubric} ${out.title} ${out.description}`);
+  } catch (error) {
+    // bcast found, protected, banned etc.
+    log(`${check.bid} ${out}`);
+  }
+  check.bid += 1;
+  return true;
+}
+
+if (action === 'watch') {
+  const timeout = (parseInt(opt1, 10) || 10) * 1000;
+  check.bid = parseInt(bcast, 10);
+  setInterval(check, timeout);
+  return;
 }
 
 // try to record using stored broadcast info
@@ -45,6 +80,7 @@ if (action === 'record' && bcast.split('.').pop() === 'json') {
   return;
 }
 
+const pass = opt1;
 Promise.try(() => {
   let url;
   // get proper page with brodcast tickets
