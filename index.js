@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const childProcess = require('child_process');
 const jsonfile = Promise.promisifyAll(require('jsonfile'));
 const fs = require('fs');
+const favourites = require('./favourites').favourites;
 
 const BASE_URL = `http://sm${'o'}tri.com/`;
 const PICS_URL = BASE_URL.replace('//', '//pics.');
@@ -42,6 +43,10 @@ function check() {
 
   try {
     out = JSON.parse(out);
+    if (favourites.includes(out.login)) {
+      log('Starting capture process'.green);
+      childProcess.spawn('node', ['.', 'record', check.bid + '.json']);
+    }
     // bcast found, not protected
     log(`${check.bid}
     ${BASE_URL}broadcast/view?id=${out._streamName.split('_')[1]}

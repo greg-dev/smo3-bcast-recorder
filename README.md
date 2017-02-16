@@ -15,6 +15,8 @@ This tool lets you automatically record your favorite shows right from the termi
 3. Open console and go into the directory where you unpacked the files.
 4. Install all dependencies by running `npm install` in the same directory as `index.js` is.
 5. Install [rtmpdump](http://rtmpdump.mplayerhq.hu/).
+6. Copy the `favorites.example.js` file, rename it to `favorites.js` 
+and fill it with logins of the broadcasters you want have automatically recorded in the `watch mode`.
 
 ## Running
 1. Open console and go into the directory where you unpacked the files.
@@ -29,9 +31,12 @@ and broadcaster login or broadcast identifier as in the examples below:
  * run `node . store 10438720`
 4. To access protected broadcasts in all above cases use the password as an optional parameter, for example:
  * run `node . record mashka4189 1234`
+5. To keep tracking newest broadcasts and automatically capture your favs use the `watch mode`,
+and pass the latest broadcast id and set time interval (the reasonable value is from 10 to 60 seconds).
+* run `node . watch 10438720 30`
 
 >Note: Avoid running more than 75 capture processes at the same time or you will get your IP banned.
 
->Note: The command below might be useful to find and kill unwanted capture processes:
+>Note: The command below might be useful for finding and killing unwanted capture processes:
 <br/>
 >`ps | grep 'rtmpdump' | cut -d ' ' -f 1,25`

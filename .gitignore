@@ -12,3 +12,6 @@ captures/*
 
 # Broadcasts data
 broadcasts/*
+
+# User specific settings
+favourites.js
