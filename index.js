@@ -10,6 +10,7 @@ const childProcess = require('child_process');
 const jsonfile = Promise.promisifyAll(require('jsonfile'));
 const fs = require('fs');
 const favourites = require('./favourites').favourites;
+const notifier = require('node-notifier');
 
 const BASE_URL = `http://sm${'o'}tri.com/`;
 const PICS_URL = BASE_URL.replace('//', '//pics.');
@@ -46,6 +47,12 @@ function check() {
     if (favourites.includes(out.login)) {
       log('Starting capture process'.green);
       childProcess.spawn('node', ['.', 'record', check.bid + '.json']);
+      notifier.notify({
+        title: out.login + ' started new broadcast',
+        message: 'Starting capture process',
+        sound: 'Glass',
+        wait: false,
+      });
     }
     // bcast found, not protected
     log(`${check.bid}
