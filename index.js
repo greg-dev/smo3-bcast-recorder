@@ -30,39 +30,50 @@ if (undefined === action || undefined === bcast) {
 }
 
 function check() {
-  let out = childProcess.spawnSync('node', ['.', 'store', check.bid]).output
+  let output = childProcess.spawnSync('node', ['.', 'store', check.bid]).output
     .filter(chunk => !!chunk) // remove nulls
     .map(chunk => chunk.toString().trim())
     .filter(chunk => !!chunk) // remove empty lines
     .pop() // get last message
     .substr(22); // chop off timestamp
 
-  if (['Broadcast not found', 'Ticket unavailable'].includes(out)) {
+  if (['Broadcast not found', 'Ticket unavailable'].includes(output)) {
+    // broadcast not yet created or page temporary unavailable => try again
     log(`${check.bid} -`);
     return false;
   }
 
   try {
-    out = JSON.parse(out);
-    if (favourites.includes(out.login)) {
-      log('Starting capture process'.green);
-      childProcess.spawn('node', ['.', 'record', check.bid + '.json']);
-      notifier.notify({
-        title: out.login + ' started new broadcast',
-        message: 'Starting capture process',
-        sound: 'Glass',
-        wait: false,
-      });
-    }
-    // bcast found, not protected
-    log(`${check.bid}
-    ${BASE_URL}broadcast/view?id=${out._streamName.split('_')[1]}
-    ${BASE_URL}user/${out.login}
-    ${out.gender} ${out.nick} ${out.rubric} ${out.title} ${out.description}`);
+    output = JSON.parse(output);
   } catch (error) {
-    // bcast found, protected, banned etc.
-    log(`${check.bid} ${out}`);
+    // broadcast protected or banned etc. => check the next one
+    log(`${check.bid} ${output}`);
+    check.bid += 1;
+    return true;
   }
+
+  // broadcast found, not password protected
+  const { login, nick, gender, rubric, title, description } = output;
+
+  if (favourites.includes(login)) {
+    log('Starting capture process'.green);
+    childProcess.spawn('node', ['.', 'record', check.bid + '.json']);
+    notifier.notify({
+      title: `${login} started new broadcast`,
+      message: 'Starting capture process',
+      sound: 'Glass',
+      wait: false,
+    });
+  }
+
+  const details = [
+    ['u', 'm', 'f'][gender || 0], nick, rubric, title, description,
+  ].filter(p => p).join(' | ');
+  log(`${check.bid}
+  ${BASE_URL}${BCAST_VW}?id=${check.bid}
+  ${BASE_URL}user/${login}
+  ${details}`);
+
   check.bid += 1;
   return true;
 }
