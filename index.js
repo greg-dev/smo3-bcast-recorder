@@ -67,7 +67,7 @@ function check() {
   }
 
   const details = [
-    ['u', 'm', 'f'][gender || 0], nick, rubric, title, description,
+    nick[['reset', 'blue', 'magenta'][gender || 0]], rubric, title, description,
   ].filter(p => p).join(' | ');
   log(`${check.bid}
   ${BASE_URL}${BCAST_VW}?id=${check.bid}
