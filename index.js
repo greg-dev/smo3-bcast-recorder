@@ -234,7 +234,7 @@ function capture(json) {
       .map(chunk => chunk.trim())
       .filter(chunk => !!chunk);
       for (let i = 0; i < chunks.length; i += 1) {
-        handleOutput(chunks[i]);
+        if (handleOutput(chunks[i]) === false) return;
       }
     });
 
@@ -262,14 +262,17 @@ function capture(json) {
         // kill the current rtmpdump process and restart recording immediately
         capture.restartDelay = 0;
         capture.process.murder();
+        return false;
       } else if ([ // minor error, but can block the capture process forever
         'ERROR: RTMP_ReadPacket, failed to read RTMP packet header',
+        'ERROR: WriteN, RTMP send error 32',
         'Caught signal: 13, cleaning up, just a second...',
       ].some(begin => !chunk.indexOf(begin))) {
         logError(chunk);
         // kill the current rtmpdump process and restart recording immediately
         capture.restartDelay = 0;
         capture.process.murder();
+        return false;
       } else if ([ // temporary problem that might need some time to resolve
         'ERROR: RTMP_Connect0, failed to connect socket.',
         'ERROR: RTMP_Connect1, handshake failed.',
@@ -279,16 +282,20 @@ function capture(json) {
         // kill the current rtmpdump process and restart recording with a delay
         capture.restartDelay = 120000;
         capture.process.murder();
+        return false;
       } else if ([ // fatal error
         'Failed to open file',
         'ERROR: Download: Failed writing, exiting!',
       ].some(begin => !chunk.indexOf(begin))) {
         logError(chunk);
         process.exit(1);
+        return false;
       } else { // unexpected output
         log(colors.rainbow(chunk));
         process.exit(0);
+        return false;
       }
+      return true;
     }
 
     captureProcess.on('error', (error) => {
