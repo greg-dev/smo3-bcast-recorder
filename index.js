@@ -230,7 +230,15 @@ function capture(json) {
     capture.process = captureProcess;
 
     captureProcess.stderr.on('data', (data) => {
-      const chunk = data.toString().trim();
+      const chunks = data.toString().trim().split('\n')
+      .map(chunk => chunk.trim())
+      .filter(chunk => !!chunk);
+      for (let i = 0; i < chunks.length; i += 1) {
+        handleOutput(chunks[i]);
+      }
+    });
+
+    function handleOutput(chunk) {
       if (!isNaN(parseInt(chunk[0], 10))) { // download progress
         clearConsole();
         log(chunk);
@@ -243,6 +251,7 @@ function capture(json) {
       } else if ([ // unimportant info
         'Caught signal: 2',
         'RTMPDump v',
+        '(c)',
         'INFO:',
       ].some(begin => !chunk.indexOf(begin))) {
         // do nothing
@@ -280,7 +289,7 @@ function capture(json) {
         log(colors.rainbow(chunk));
         process.exit(0);
       }
-    });
+    }
 
     captureProcess.on('error', (error) => {
       throw error;
