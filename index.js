@@ -29,6 +29,13 @@ if (undefined === action || undefined === bcast) {
   process.exit(0);
 }
 
+process.on('SIGINT', () => {
+  if (undefined !== capture.process) {
+    capture.process.murder();
+  }
+  process.exit(0);
+});
+
 function check() {
   let output = childProcess.spawnSync('node', ['.', 'store', check.bid]).output
     .filter(chunk => !!chunk) // remove nulls
@@ -321,13 +328,6 @@ function capture(json) {
     logError(error.toString());
   });
 }
-
-process.on('SIGINT', () => {
-  if (undefined !== capture.process) {
-    capture.process.murder();
-  }
-  process.exit(0);
-});
 
 function log(txt) {
   console.log('[%s]'.blue, moment().format('YYYY-MM-DD HH:mm:ss'), txt);
