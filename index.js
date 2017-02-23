@@ -30,7 +30,7 @@ if (undefined === action || undefined === bcast) {
 }
 
 process.on('SIGINT', () => {
-  if (undefined !== capture.process) {
+  if (opt1 !== 'nokill' && undefined !== capture.process) {
     capture.process.murder();
   }
   process.exit(0);
@@ -64,7 +64,7 @@ function check() {
 
   if (favourites.includes(login)) {
     log('Starting capture process'.green);
-    childProcess.spawn('node', ['.', 'record', check.bid + '.json']);
+    childProcess.spawn('node', ['.', 'record', check.bid + '.json', 'nokill']);
     notifier.notify({
       title: `${login} started new broadcast`,
       message: 'Starting capture process',
