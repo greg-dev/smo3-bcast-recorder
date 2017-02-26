@@ -3,7 +3,11 @@
   "version": "0.5.1",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "record": "node . record",
+    "store": "node . store",
+    "watch": "node . watch"
+  },
   "author": "",
   "license": "WTFPL",
   "dependencies": {

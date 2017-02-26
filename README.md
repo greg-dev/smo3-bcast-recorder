@@ -22,18 +22,18 @@ and fill it with logins of the broadcasters you want have automatically recorded
 1. Open console and go into the directory where you unpacked the files.
 2. To create new recording process and lock it on a broadcast use the `record` command 
 and broadcaster login or broadcast identifier as in the examples below:
- * run `node . record mashka4189`
- * run `node . record 10438720`
+ * run `npm run record mashka4189`
+ * run `npm run record 10438720`
 <br/><br/>you can add `.json` suffix to broadcast id to start recording using its data stored previously in a file:
- * run `node . record 10438720.json`
+ * run `npm run record 10438720.json`
 3. To store broadcast data without recording any video stream use the `store` command as below:
- * run `node . store mashka4189`
- * run `node . store 10438720`
+ * run `npm run store mashka4189`
+ * run `npm run store 10438720`
 4. To access protected broadcasts in all above cases use the password as an optional parameter, for example:
- * run `node . record mashka4189 1234`
+ * run `npm run record mashka4189 1234`
 5. To keep tracking newest broadcasts and automatically capture your favs use the `watch mode`,
 and pass the latest broadcast id and set time interval (the reasonable value is from 10 to 60 seconds).
-* run `node . watch 10438720 30`
+* run `npm run watch 10438720 30`
 
 >Note: Avoid running more than 75 capture processes at the same time or you will get your IP banned.
 
