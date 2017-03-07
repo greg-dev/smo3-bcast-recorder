@@ -50,6 +50,14 @@ function check() {
     return false;
   }
 
+  if ([
+    'getaddrinfo ENOTFOUND',
+  ].some(begin => !output.indexOf(begin))) {
+    // temporary problem => output error message and try again
+    logError(`${check.bid} ${output}`);
+    return false;
+  }
+
   try {
     output = JSON.parse(output);
   } catch (error) {
