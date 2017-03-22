@@ -330,7 +330,11 @@ function capture(json) {
       captureProcess.kill('SIGKILL');
       const path = captureDirectory + fileName;
       if (fs.existsSync(path) && !fs.statSync(path).size) {
-        fs.unlink(path);
+        try {
+          fs.unlink(path);
+        } catch (error) {
+          // output file already deleted
+        }
       }
     };
   }).catch((error) => {
