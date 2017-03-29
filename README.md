@@ -38,9 +38,9 @@ and pass the latest broadcast id and set time interval (the reasonable value is 
 >Note: Avoid running more than 75 capture processes at the same time or you will get your IP banned.
 
 >Note: The command below might be useful for finding and killing unwanted capture processes:
-<br/>
+><br/>
 >`ps xo ppid,pid,command | grep 'rtmpdump' | sed 's/^ *//;s/ *$//' | tr -s " " | cut -d " " -f 1,2,21`
-<br/>
+><br/>
 >It will list all your capture processes with their PID, PPID and output file name,
 the first two ids are needed to kill the process with `kill -9 PPID PID`
 and the third one will help you localize it.
