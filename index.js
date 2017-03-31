@@ -283,6 +283,7 @@ function capture(json) {
         'ERROR: RTMP_ReadPacket, failed to read RTMP packet header',
         'ERROR: WriteN, RTMP send error 32',
         'Caught signal: 13, cleaning up, just a second...',
+        'Download may be incomplete',
       ].some(begin => !chunk.indexOf(begin))) {
         logError(chunk);
         // kill the current rtmpdump process and restart recording immediately
