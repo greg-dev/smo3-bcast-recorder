@@ -52,6 +52,8 @@ function check() {
 
   if ([
     'getaddrinfo ENOTFOUND',
+    'connect ENETUNREACH',
+    'The connection timed out',
   ].some(begin => !output.indexOf(begin))) {
     // temporary problem => output error message and try again
     logError(`${check.bid} ${output}`);
