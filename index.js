@@ -192,22 +192,26 @@ Promise.try(() => {
 
 function cleanup(orig) {
   const json = Object.assign({}, orig);
-  delete json.current_time;
-  delete json.is_play;
-  delete json._pass_protected;
-  delete json._vidURL;
-  delete json._chatURL;
-  delete json._chat_server;
-  delete json.begun_url_1;
-  delete json.begun_url_2;
-  delete json.begun_url_3;
-  delete json.begun_url_4;
-  delete json.video_id;
-  delete json.author_id;
-  delete json.fakestatus;
-  delete json.remote_ip;
-  delete json.save_error;
-  delete json.rubric_broadcastlink;
+  [
+    'current_time',
+    'is_play',
+    '_pass_protected',
+    '_vidURL',
+    '_chatURL',
+    '_chat_server',
+    'begun_url_1',
+    'begun_url_2',
+    'begun_url_3',
+    'begun_url_4',
+    'video_id',
+    'author_id',
+    'fakestatus',
+    'remote_ip',
+    'save_error',
+    'rubric_broadcastlink',
+  ].forEach((param) => {
+    delete json[param];
+  });
   if (!!json._imgURL && json._imgURL.substr(0, 7) === '//pics.') {
     delete json._imgURL;
   }
