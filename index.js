@@ -285,8 +285,7 @@ function capture(json) {
         capture.process.murder();
         return false;
       } else if ([ // minor error, but can block the capture process forever
-        'ERROR: RTMP_ReadPacket, failed to read RTMP packet body',
-        'ERROR: RTMP_ReadPacket, failed to read RTMP packet header',
+        'ERROR: RTMP_ReadPacket, failed to read RTMP packet',
         'ERROR: WriteN, RTMP send error 32',
         'Caught signal: 13, cleaning up, just a second...',
         'Download may be incomplete',
