@@ -71,6 +71,7 @@ function check() {
 
   // broadcast found, not password protected
   const { login, nick, gender, rubric, title, description } = output;
+  const [, vkid] = login.match(new RegExp(/^(\d*)-vk$/)) || [];
 
   if (favourites.includes(login)) {
     log('Starting capture process'.green);
@@ -86,10 +87,13 @@ function check() {
   const details = [
     nick[['reset', 'blue', 'magenta'][gender || 0]], rubric, title, description,
   ].filter(p => p).join(' | ');
-  log(`${check.bid}
-  ${BASE_URL}${BCAST_VW}?id=${check.bid}
-  ${BASE_URL}user/${login}
-  ${details}`);
+  log([
+    check.bid,
+    `${BASE_URL}${BCAST_VW}?id=${check.bid}`,
+    `${BASE_URL}user/${login}`,
+    vkid ? `https://vk.com/id${vkid}` : null,
+    details,
+  ].filter(line => line).join('\n'));
 
   check.bid += 1;
   return true;
