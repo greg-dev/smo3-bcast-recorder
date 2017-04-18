@@ -10,6 +10,7 @@ const childProcess = require('child_process');
 const jsonfile = Promise.promisifyAll(require('jsonfile'));
 const fs = require('fs');
 const favourites = require('./favourites').favourites;
+const levenstein = require('levenshtein-string-distance');
 const notifier = require('node-notifier');
 
 const BASE_URL = `http://sm${'o'}tri.com/`;
@@ -73,7 +74,9 @@ function check() {
   const { login, nick, gender, rubric, title, description } = output;
   const [, vkid] = login.match(new RegExp(/^(\d*)-vk$/)) || [];
 
-  if (favourites.includes(login)) {
+  const similar = name => levenstein(name, login) < 3;
+  const favourite = favourites.includes(login) || favourites.some(similar);
+  if (favourite) {
     log('Starting capture process'.green);
     childProcess.spawn('node', ['.', 'record', check.bid + '.json', 'nokill']);
     notifier.notify({
