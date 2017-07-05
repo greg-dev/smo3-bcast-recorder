@@ -9,7 +9,7 @@ This tool lets you automatically record your favorite shows right from the termi
 <br/>
 [rtmpdump](https://rtmpdump.mplayerhq.hu/) used to connect to RTMP server and capture the live video stream and save it to a file.
 
-##Setup
+## Setup
 1. Install [Node.js](https://nodejs.org/en/download/) (tested on `6.9.x`).
 2. Download and unpack the [code](https://github.com/greg-dev/smo3-bcast-recorder/archive/master.zip).
 3. Open console and go into the directory where you unpacked the files.
