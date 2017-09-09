@@ -6,7 +6,8 @@
   "scripts": {
     "record": "node . record",
     "store": "node . store",
-    "watch": "node . watch"
+    "watch": "node . watch",
+    "kill": "node . kill"
   },
   "author": "",
   "license": "WTFPL",

@@ -25,7 +25,7 @@ const [action, bcast, opt1] = process.argv.slice(2);
 if (undefined === action || undefined === bcast) {
   logError('Missing required params.');
   process.exit(0);
-} else if (!['record', 'store', 'watch'].includes(action)) {
+} else if (!['record', 'store', 'watch', 'kill'].includes(action)) {
   logError('Unsupported command.');
   process.exit(0);
 }
@@ -100,6 +100,68 @@ function check() {
 
   check.bid += 1;
   return true;
+}
+
+function getRunningCaptureProcesses() {
+  const command = [
+    'ps xo ppid,pid,command',
+    'grep "rtmpdump"',
+    'sed "s/^ *//;s/ *$//"',
+    'tr -s " "',
+    'cut -d " " -f 1,2,21',
+  ].join(' | ');
+  return new Promise((resolve, reject) => {
+    childProcess.exec(command, (error, stdout) => {
+      if (error) {
+        reject([]);
+        return;
+      }
+      const lines = stdout
+        .split(/\r?\n/)
+        .filter(line => line.match(new RegExp(/^\d* \d* .*\.flv$/)));
+      const processes = lines.map((line) => {
+        const [ppid, pid, filepath] = line.split(' ');
+        const filename = filepath.split('/').pop().split('.flv')[0];
+        const [uid, bid, , ...loginParts] = filename.split('_');
+        const login = loginParts.join('_');
+        return ({ ppid, pid, filename, uid, bid, login });
+      });
+      processes.sort((x, y) => {
+        if (x.uid === y.uid) {
+          return x.bid > y.bid ? 1 : -1;
+        }
+        return x.uid > y.uid ? 1 : -1;
+      });
+      resolve(processes);
+    });
+  });
+}
+
+function logCaptureProcesses(processes) {
+  processes.forEach(ps => console.log(
+    'kill -9 ' + ps.ppid + ' ' + ps.pid,
+    BASE_URL + BCAST_VW + '?id=' + ps.bid,
+    ps.login,
+  ));
+}
+
+// log list of currently captured broadcasts with proper kill commands,
+if (action === 'kill') {
+  // optionally kill broadcasts by bid first
+  if (/^\d{7,8}$/.test(bcast)) {
+    getRunningCaptureProcesses().then((processes) => {
+      processes.forEach((ps) => {
+        if (ps.bid === bcast) {
+          childProcess.exec(`kill -9 ${ps.ppid} ${ps.pid}`, () => {
+            getRunningCaptureProcesses().then(logCaptureProcesses);
+          });
+        }
+      });
+    });
+  } else {
+    getRunningCaptureProcesses().then(logCaptureProcesses);
+  }
+  return;
 }
 
 if (action === 'watch') {
