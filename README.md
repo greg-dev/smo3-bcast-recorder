@@ -34,6 +34,10 @@ and broadcaster login or broadcast identifier as in the examples below:
 5. To keep tracking newest broadcasts and automatically capture your favs use the `watch mode`,
 and pass the latest broadcast id and set time interval (the reasonable value is from 10 to 60 seconds).
 * run `npm run watch 10438720 30`
+6. To get the list of currently running capture processes use the `kill` command as below:
+* run `npm run kill list`
+<br/><br/>you can also stop recording broadcast by passing its id as an optional parameter:
+* run `npm run kill 10438720`
 
 >Note: Avoid running more than 75 capture processes at the same time or you will get your IP banned.
 
