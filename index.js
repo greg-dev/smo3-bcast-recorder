@@ -406,7 +406,7 @@ function capture(json) {
       const path = captureDirectory + fileName;
       if (fs.existsSync(path) && !fs.statSync(path).size) {
         try {
-          fs.unlink(path);
+          fs.unlink(path, err => err);
         } catch (error) {
           // output file already deleted
         }
