@@ -342,6 +342,7 @@ function capture(json) {
       } else if ([ // minor error, but can block the capture process forever
         'ERROR: RTMP_ReadPacket, failed to read RTMP packet',
         'ERROR: WriteN, RTMP send error 32',
+        'WARNING: HandShake: Type mismatch',
         'Caught signal: 13, cleaning up, just a second...',
         'Download may be incomplete',
       ].some(error => chunk.startsWith(error))) {
