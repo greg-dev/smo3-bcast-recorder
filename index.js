@@ -343,6 +343,7 @@ function capture(json) {
         'ERROR: RTMP_ReadPacket, failed to read RTMP packet',
         'ERROR: WriteN, RTMP send error 32',
         'WARNING: HandShake: Type mismatch',
+        'WARNING: Trying different position for server digest',
         'Caught signal: 13, cleaning up, just a second...',
         'Download may be incomplete',
       ].some(error => chunk.startsWith(error))) {
