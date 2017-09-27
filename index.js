@@ -207,13 +207,13 @@ Promise.try(() => {
   let ticket = html.match(new RegExp(/&amp;file=(.*)&amp;/));
   if (ticket && typeof ticket[1] === 'string') {
     ticket = ticket[1];
-  } else if (html.indexOf('Трансляция не найдена') > -1) {
+  } else if (html.includes('Трансляция не найдена')) {
     throw new Error('Broadcast not found');
-  } else if (html.indexOf('Трансляция не одобрена модератором') > -1) {
+  } else if (html.includes('Трансляция не одобрена модератором')) {
     throw new Error('Broadcast banned');
-  } else if (html.indexOf('Страница не найдена') > -1) {
+  } else if (html.includes('Страница не найдена')) {
     throw new Error('Page not found');
-  } else if (html.indexOf('Юзер не найден') > -1) {
+  } else if (html.includes('Юзер не найден')) {
     throw new Error('User not found');
   } else {
     throw new Error('Ticket unavailable');
