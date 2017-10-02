@@ -21,22 +21,6 @@ const BCAST_VW = `broadcast${'/'}view`;
 const captureDirectory = 'captures/';
 const broadcastsDirectory = 'broadcasts/';
 
-const [action, bcast, opt1] = process.argv.slice(2);
-if (undefined === action || undefined === bcast) {
-  logError('Missing required params.');
-  process.exit(0);
-} else if (!['record', 'store', 'watch', 'kill'].includes(action)) {
-  logError('Unsupported command.');
-  process.exit(0);
-}
-
-process.on('SIGINT', () => {
-  if (opt1 !== 'nokill' && undefined !== capture.process) {
-    capture.process.murder();
-  }
-  process.exit(0);
-});
-
 function check() {
   let output = childProcess.spawnSync('node', ['.', 'store', check.bid]).output
     .filter(chunk => !!chunk) // remove nulls
@@ -145,13 +129,11 @@ function logCaptureProcesses(processes) {
   ));
 }
 
-// log list of currently captured broadcasts with proper kill commands,
-if (action === 'kill') {
-  // optionally kill broadcasts by bid first
-  if (/^\d{7,8}$/.test(bcast)) {
+function kill(bid) {
+  if (/^\d{7,8}$/.test(bid)) {
     getRunningCaptureProcesses().then((processes) => {
       processes.forEach((ps) => {
-        if (ps.bid === bcast) {
+        if (ps.bid === bid) {
           childProcess.exec(`kill -9 ${ps.ppid} ${ps.pid}`, () => {
             getRunningCaptureProcesses().then(logCaptureProcesses);
           });
@@ -161,103 +143,83 @@ if (action === 'kill') {
   } else {
     getRunningCaptureProcesses().then(logCaptureProcesses);
   }
-  return;
 }
 
-if (action === 'watch') {
-  const timeout = (parseInt(opt1, 10) || 10) * 1000;
-  check.bid = parseInt(bcast, 10);
-  setInterval(check, timeout);
-  return;
-}
+function run(action, bcast, pass) {
+  if (action === 'record' && bcast.split('.').pop() === 'json') {
+    recordStored(bcast);
+    return;
+  }
 
-// try to record using stored broadcast info
-if (action === 'record' && bcast.split('.').pop() === 'json') {
-  const path = broadcastsDirectory + bcast;
-  if (fs.existsSync(path)) {
-    let json = fs.readFileSync(path, 'utf-8').trim();
-    try {
-      json = JSON.parse(json);
-    } catch (error) {
-      logError('JSON parse error');
-      return;
+  Promise.try(() => {
+    let url;
+    // get proper page with brodcast tickets
+    if (bcast === bcast.replace(/\D/g, '')) {
+      // use broadcast id
+      url = BASE_URL + BCAST_VW + '?id=' + bcast;
+    } else {
+      // use broadcaster login
+      url = BASE_URL + 'live/' + bcast + '/';
     }
-    capture(json);
-  } else {
-    logError('File not found');
-  }
-  return;
+    return bhttp.get(url);
+  }).then((response) => {
+    // find broadcast ticket
+    const html = response.body.toString();
+    let ticket = html.match(new RegExp(/&amp;file=(.*)&amp;/));
+    if (ticket && typeof ticket[1] === 'string') {
+      ticket = ticket[1];
+    } else if (html.includes('Трансляция не найдена')) {
+      throw new Error('Broadcast not found');
+    } else if (html.includes('Трансляция не одобрена модератором')) {
+      throw new Error('Broadcast banned');
+    } else if (html.includes('Страница не найдена')) {
+      throw new Error('Page not found');
+    } else if (html.includes('Юзер не найден')) {
+      throw new Error('User not found');
+    } else {
+      throw new Error('Ticket unavailable');
+    }
+    return ticket;
+  }).then((ticket) => {
+    // get json with broadcast data
+    const url = BASE_URL + BCAST_VW + '/url/?xt=' + ticket;
+    const sid = '0'.repeat(32);
+    const data = { ticket, sid };
+    if (pass) {
+      data.pass = crypto.createHash('md5').update(pass).digest('hex');
+    }
+    return bhttp.post(url, data);
+  }).then((response) => {
+    const html = response.body.toString();
+    let json;
+    try {
+      json = JSON.parse(html);
+    } catch (error) {
+      throw new Error('JSON parse error');
+    }
+    if (json._pass_protected) {
+      throw new Error(pass ? 'Wrong password' : 'Password protected');
+    }
+    if (pass) {
+      json.pass = pass;
+    }
+    return json;
+  })
+  .then((json) => {
+    if (action === 'store' || action === 'record') {
+      storeBroadcastData(json);
+    }
+    return json;
+  })
+  .then((json) => {
+    if (action === 'record') {
+      capture(json);
+    }
+  })
+  .catch((error) => {
+    logError(error.toString().split('Error: ').pop());
+  });
 }
-
-const pass = opt1;
-Promise.try(() => {
-  let url;
-  // get proper page with brodcast tickets
-  if (bcast === bcast.replace(/\D/g, '')) {
-    // use broadcast id
-    url = BASE_URL + BCAST_VW + '?id=' + bcast;
-  } else {
-    // use broadcaster login
-    url = BASE_URL + 'live/' + bcast + '/';
-  }
-  return bhttp.get(url);
-}).then((response) => {
-  // find broadcast ticket
-  const html = response.body.toString();
-  let ticket = html.match(new RegExp(/&amp;file=(.*)&amp;/));
-  if (ticket && typeof ticket[1] === 'string') {
-    ticket = ticket[1];
-  } else if (html.includes('Трансляция не найдена')) {
-    throw new Error('Broadcast not found');
-  } else if (html.includes('Трансляция не одобрена модератором')) {
-    throw new Error('Broadcast banned');
-  } else if (html.includes('Страница не найдена')) {
-    throw new Error('Page not found');
-  } else if (html.includes('Юзер не найден')) {
-    throw new Error('User not found');
-  } else {
-    throw new Error('Ticket unavailable');
-  }
-  return ticket;
-}).then((ticket) => {
-  // get json with broadcast data
-  const url = BASE_URL + BCAST_VW + '/url/?xt=' + ticket;
-  const sid = '0'.repeat(32);
-  const data = { ticket, sid };
-  if (pass) {
-    data.pass = crypto.createHash('md5').update(pass).digest('hex');
-  }
-  return bhttp.post(url, data);
-}).then((response) => {
-  const html = response.body.toString();
-  let json;
-  try {
-    json = JSON.parse(html);
-  } catch (error) {
-    throw new Error('JSON parse error');
-  }
-  if (json._pass_protected) {
-    throw new Error(pass ? 'Wrong password' : 'Password protected');
-  }
-  if (pass) {
-    json.pass = pass;
-  }
-  return json;
-})
-.then((json) => {
-  if (action === 'store' || action === 'record') {
-    storeBroadcastData(json);
-  }
-  return json;
-})
-.then((json) => {
-  if (action === 'record') {
-    capture(json);
-  }
-})
-.catch((error) => {
-  logError(error.toString().split('Error: ').pop());
-});
 
 function cleanup(orig) {
   const json = Object.assign({}, orig);
@@ -292,6 +254,22 @@ function storeBroadcastData(json) {
   const bid = json._streamName.split('_')[1];
   const path = broadcastsDirectory + parseInt(bid, 10) + '.json';
   return jsonfile.writeFile(path, cleanup(json));
+}
+
+function recordStored(bcast) {
+  const path = broadcastsDirectory + bcast;
+  if (fs.existsSync(path)) {
+    let json = fs.readFileSync(path, 'utf-8').trim();
+    try {
+      json = JSON.parse(json);
+    } catch (error) {
+      logError('JSON parse error');
+      return;
+    }
+    capture(json);
+  } else {
+    logError('File not found');
+  }
 }
 
 function capture(json) {
@@ -433,4 +411,39 @@ function clearConsole() {
   // we could output the <ESC>c sequence using simple '\033c'
   // but octal literals are not allowed in strict mode
   console.log('\u001B[2J\u001B[0;0f');
+}
+
+const [action, bcast, arg3] = process.argv.slice(2);
+if (undefined === action || undefined === bcast) {
+  logError('Missing required params.');
+  process.exit(0);
+} else if (!['record', 'store', 'watch', 'kill'].includes(action)) {
+  logError('Unsupported command.');
+  process.exit(0);
+}
+
+process.on('SIGINT', () => {
+  if (arg3 !== 'nokill' && undefined !== capture.process) {
+    capture.process.murder();
+  }
+  process.exit(0);
+});
+
+switch (action) {
+  case 'kill':
+    kill(bcast);
+    break;
+
+  // eslint-disable-next-line no-case-declarations
+  case 'watch':
+    const timeout = (parseInt(arg3, 10) || 10) * 1000;
+    check.bid = parseInt(bcast, 10);
+    setInterval(check, timeout);
+    break;
+
+  case 'record':
+  case 'store':
+  default:
+    run(action, bcast, arg3);
+    break;
 }
