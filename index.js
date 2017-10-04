@@ -342,6 +342,7 @@ function capture(json) {
       } else if ([ // minor error, but can block the capture process forever
         'ERROR: RTMP_ReadPacket, failed to read RTMP packet',
         'ERROR: WriteN, RTMP send error 32',
+        'ERROR: Couldn\'t verify the server digest',
         'WARNING: HandShake: Type mismatch',
         'WARNING: Trying different position for server digest',
         'Caught signal: 13, cleaning up, just a second...',
