@@ -316,6 +316,12 @@ function capture(json) {
         log('Connected. Waiting for live stream...');
       } else if (chunk === 'Starting Live Stream') {
         log('Recording...');
+        notifier.notify({
+          title: 'Live stream started',
+          message: 'Started recording',
+          sound: 'Sosumi',
+          wait: false,
+        });
       } else if ([ // unimportant info
         'Caught signal: 2',
         'RTMPDump v',
