@@ -64,7 +64,7 @@ function check() {
     log('Starting capture process'.green);
     childProcess.spawn('node', ['.', 'record', check.bid + '.json', 'nokill']);
     notifier.notify({
-      title: `${login} started new broadcast`,
+      title: `${login} created new broadcast`,
       message: 'Starting capture process',
       sound: 'Glass',
       wait: false,
@@ -317,8 +317,8 @@ function capture(json) {
       } else if (chunk === 'Starting Live Stream') {
         log('Recording...');
         notifier.notify({
-          title: 'Live stream started',
-          message: 'Started recording',
+          title: `${json.login} started streaming`,
+          message: 'Recording...',
           sound: 'Sosumi',
           wait: false,
         });
