@@ -67,7 +67,8 @@ function check() {
       title: `${login} created new broadcast`,
       message: 'Starting capture process',
       sound: 'Glass',
-      wait: false,
+      wait: true,
+      open: BASE_URL + BCAST_VW + '?id=' + check.bid,
     });
   }
 
@@ -320,7 +321,8 @@ function capture(json) {
           title: `${json.login} started streaming`,
           message: 'Recording...',
           sound: 'Sosumi',
-          wait: false,
+          wait: true,
+          open: BASE_URL + BCAST_VW + '?id=' + json._streamName.split('_')[1],
         });
       } else if ([ // unimportant info
         'Caught signal: 2',
