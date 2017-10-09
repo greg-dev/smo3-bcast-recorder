@@ -39,7 +39,7 @@ function check() {
     'getaddrinfo ENOTFOUND',
     'connect ENETUNREACH',
     'The connection timed out',
-  ].some(begin => !output.indexOf(begin))) {
+  ].some(error => output.startsWith(error))) {
     // temporary problem => output error message and try again
     logError(`${check.bid} ${output}`);
     return false;
@@ -329,11 +329,11 @@ function capture(json) {
         'RTMPDump v',
         '(c)',
         'INFO:',
-      ].some(begin => !chunk.indexOf(begin))) {
+      ].some(info => chunk.startsWith(info))) {
         // do nothing
       } else if ([ // no error, but restart needed
         'Download complete',
-      ].some(begin => !chunk.indexOf(begin))) {
+      ].some(info => chunk.startsWith(info))) {
         log(chunk);
         // kill the current rtmpdump process and restart recording immediately
         capture.restartDelay = 0;
@@ -344,7 +344,7 @@ function capture(json) {
         'ERROR: WriteN, RTMP send error 32',
         'Caught signal: 13, cleaning up, just a second...',
         'Download may be incomplete',
-      ].some(begin => !chunk.indexOf(begin))) {
+      ].some(error => chunk.startsWith(error))) {
         logError(chunk);
         // kill the current rtmpdump process and restart recording immediately
         capture.restartDelay = 0;
@@ -354,7 +354,7 @@ function capture(json) {
         'ERROR: RTMP_Connect0, failed to connect socket.',
         'ERROR: RTMP_Connect1, handshake failed.',
         'ERROR: Problem accessing the DNS',
-      ].some(begin => !chunk.indexOf(begin))) {
+      ].some(error => chunk.startsWith(error))) {
         logError(chunk);
         // kill the current rtmpdump process and restart recording with a delay
         capture.restartDelay = 120000;
@@ -363,7 +363,7 @@ function capture(json) {
       } else if ([ // fatal error
         'Failed to open file',
         'ERROR: Download: Failed writing, exiting!',
-      ].some(begin => !chunk.indexOf(begin))) {
+      ].some(error => chunk.startsWith(error))) {
         logError(chunk);
         process.exit(1);
         return false;
