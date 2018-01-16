@@ -38,6 +38,7 @@ function check() {
   if ([
     'getaddrinfo ENOTFOUND',
     'connect ENETUNREACH',
+    'connect ECONNREFUSED',
     'The connection timed out',
   ].some(error => output.startsWith(error))) {
     // temporary problem => output error message and try again
