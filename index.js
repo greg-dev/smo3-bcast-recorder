@@ -10,6 +10,7 @@ const { exec, spawn, spawnSync } = require('child_process');
 const jsonfile = Promise.promisifyAll(require('jsonfile'));
 const fs = require('fs');
 const { favourites } = require('./favourites');
+const { excluded } = require('./excluded');
 const levenstein = require('levenshtein-string-distance');
 const notifier = require('node-notifier');
 
@@ -60,8 +61,9 @@ function check() {
   const [, vkid] = login.match(new RegExp(/^(\d*)-vk$/)) || [];
 
   const similar = name => levenstein(name, login) < 3;
-  const favourite = favourites.includes(login) || favourites.some(similar);
-  if (favourite) {
+  const autorecord = !excluded.includes(login) &&
+    (favourites.includes(login) || favourites.some(similar));
+  if (autorecord) {
     log('Starting capture process'.green);
     spawn('node', ['.', 'record', check.bid + '.json', 'nokill']);
     notifier.notify({

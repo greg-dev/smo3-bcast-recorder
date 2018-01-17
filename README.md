@@ -17,6 +17,8 @@ This tool lets you automatically record your favorite shows right from the termi
 5. Install [rtmpdump](http://rtmpdump.mplayerhq.hu/).
 6. Copy the `favorites.example.js` file, rename it to `favorites.js` 
 and fill it with logins of the broadcasters you want have automatically recorded in the `watch mode`.
+7. Copy the `excluded.example.js` file, rename it to `excluded.js` 
+and fill it with logins of the broadcasters you don't want have automatically recorded in the `watch mode`.
 
 ## Running
 1. Open console and go into the directory where you unpacked the files.
