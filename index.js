@@ -5,11 +5,11 @@ const Promise = require('bluebird');
 const bhttp = require('bhttp');
 const moment = require('moment');
 const colors = require('colors');
-const crypto = require('crypto');
-const childProcess = require('child_process');
+const { createHash } = require('crypto');
+const { exec, spawn, spawnSync } = require('child_process');
 const jsonfile = Promise.promisifyAll(require('jsonfile'));
 const fs = require('fs');
-const favourites = require('./favourites').favourites;
+const { favourites } = require('./favourites');
 const levenstein = require('levenshtein-string-distance');
 const notifier = require('node-notifier');
 
@@ -22,7 +22,7 @@ const captureDirectory = 'captures/';
 const broadcastsDirectory = 'broadcasts/';
 
 function check() {
-  let output = childProcess.spawnSync('node', ['.', 'store', check.bid]).output
+  let output = spawnSync('node', ['.', 'store', check.bid]).output
     .filter(chunk => !!chunk) // remove nulls
     .map(chunk => chunk.toString().trim())
     .filter(chunk => !!chunk) // remove empty lines
@@ -63,7 +63,7 @@ function check() {
   const favourite = favourites.includes(login) || favourites.some(similar);
   if (favourite) {
     log('Starting capture process'.green);
-    childProcess.spawn('node', ['.', 'record', check.bid + '.json', 'nokill']);
+    spawn('node', ['.', 'record', check.bid + '.json', 'nokill']);
     notifier.notify({
       title: `${login} created new broadcast`,
       message: 'Starting capture process',
@@ -97,7 +97,7 @@ function getRunningCaptureProcesses() {
     'cut -d " " -f 1,2,21',
   ].join(' | ');
   return new Promise((resolve, reject) => {
-    childProcess.exec(command, (error, stdout) => {
+    exec(command, (error, stdout) => {
       if (error) {
         reject([]);
         return;
@@ -136,7 +136,7 @@ function kill(bid) {
     getRunningCaptureProcesses().then((processes) => {
       processes.forEach((ps) => {
         if (ps.bid === bid) {
-          childProcess.exec(`kill -9 ${ps.ppid} ${ps.pid}`, () => {
+          exec(`kill -9 ${ps.ppid} ${ps.pid}`, () => {
             getRunningCaptureProcesses().then(logCaptureProcesses);
           });
         }
@@ -188,7 +188,7 @@ function run(action, bcast, pass) {
     const sid = '0'.repeat(32);
     const data = { ticket, sid };
     if (pass) {
-      data.pass = crypto.createHash('md5').update(pass).digest('hex');
+      data.pass = createHash('md5').update(pass).digest('hex');
     }
     return bhttp.post(url, data);
   }).then((response) => {
@@ -296,7 +296,7 @@ function capture(json) {
       '-o', captureDirectory + fileName,
     ];
 
-    const captureProcess = childProcess.spawn('rtmpdump', spawnArgs);
+    const captureProcess = spawn('rtmpdump', spawnArgs);
     capture.process = captureProcess;
 
     captureProcess.stderr.on('data', (data) => {
