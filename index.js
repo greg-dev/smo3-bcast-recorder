@@ -23,11 +23,12 @@ const captureDirectory = 'captures/';
 const broadcastsDirectory = 'broadcasts/';
 
 function check() {
-  let output = spawnSync('node', ['.', 'store', check.bid]).output
+  const store = spawnSync('node', ['.', 'store', check.bid], { timeout: 60000 });
+  let output = store.error ? store.error.code : store.output
     .filter(chunk => !!chunk) // remove nulls
     .map(chunk => chunk.toString().trim())
     .filter(chunk => !!chunk) // remove empty lines
-    .pop() // get last message
+    .reduce((out, line) => line || '', '') // get last message
     .substr(22); // chop off timestamp
 
   if (['Broadcast not found', 'Ticket unavailable'].includes(output)) {
@@ -41,6 +42,7 @@ function check() {
     'connect ENETUNREACH',
     'connect ECONNREFUSED',
     'The connection timed out',
+    'ETIMEDOUT',
   ].some(error => output.startsWith(error))) {
     // temporary problem => output error message and try again
     logError(`${check.bid} ${output}`);
