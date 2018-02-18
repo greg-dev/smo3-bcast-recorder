@@ -117,10 +117,10 @@ function getRunningCaptureProcesses() {
         return ({ ppid, pid, filename, uid, bid, login });
       });
       processes.sort((x, y) => {
-        if (x.uid === y.uid) {
+        if (x.login === y.login) {
           return x.bid > y.bid ? 1 : -1;
         }
-        return x.uid > y.uid ? 1 : -1;
+        return x.login > y.login ? 1 : -1;
       });
       resolve(processes);
     });
